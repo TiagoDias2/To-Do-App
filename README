@@ -1,0 +1,14 @@
+# To-Do App (Python)
+
+Simple terminal-based To-Do application built in Python.
+
+## Features
+
+- Add tasks
+- View tasks
+- Remove tasks
+
+## How to run
+
+```bash
+python3 src/main.py
