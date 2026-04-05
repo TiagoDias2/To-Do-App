@@ -1,3 +1,31 @@
+import json
+import os
+
+# Save tasks in user's home directory for privacy
+TASKS_DIR = os.path.expanduser("~/.todo_app")
+TASKS_FILE = os.path.join(TASKS_DIR, "tasks.json")
+
+def load_tasks():
+    """Load tasks from file if it exists."""
+    if os.path.exists(TASKS_FILE):
+        try:
+            with open(TASKS_FILE, 'r') as f:
+                return json.load(f)
+        except (json.JSONDecodeError, IOError):
+            print("⚠️  Warning: Could not load saved tasks. Starting fresh.")
+            return []
+    return []
+
+def save_tasks(tasks):
+    """Save tasks to file."""
+    try:
+        # Ensure the directory exists
+        os.makedirs(TASKS_DIR, exist_ok=True)
+        with open(TASKS_FILE, 'w') as f:
+            json.dump(tasks, f, indent=2)
+    except IOError:
+        print("⚠️  Warning: Could not save tasks to file.")
+
 def display_menu():
     """Display the main menu with better formatting."""
     print("\n" + "=" * 50)
@@ -69,7 +97,7 @@ def show_statistics(tasks):
 
 
 def main():
-    tasks = []
+    tasks = load_tasks()
     
     print("\n" + "🎉 " * 10)
     print("   Welcome to TO-DO APP! Let's get organized  ")
@@ -151,6 +179,7 @@ def main():
                 
         elif choice == "7":
             # Exit
+            save_tasks(tasks)
             if tasks:
                 pending = sum(1 for t in tasks if not t['completed'])
                 print(f"\n👋 Goodbye! You have {pending} pending task(s). See you soon!")
