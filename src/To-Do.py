@@ -6,6 +6,10 @@ import time
 TASKS_DIR = os.path.expanduser("~/.todo_app")
 TASKS_FILE = os.path.join(TASKS_DIR, "tasks.json")
 
+def clear_console():
+    """Clear the console screen for better UX."""
+    os.system('clear')
+
 def load_tasks():
     """Load tasks from file if it exists."""
     if os.path.exists(TASKS_FILE):
@@ -69,6 +73,7 @@ def display_menu():
 
 def display_tasks(tasks):
     """Display all tasks with better formatting."""
+    clear_console()
     if not tasks:
         print("\n⚠️  No tasks yet. Let's add one!")
         return
@@ -106,6 +111,7 @@ def display_tasks(tasks):
 
 def search_tasks(tasks):
     """Search tasks by keyword."""
+    clear_console()
     if not tasks:
         print("\n⚠️  No tasks to search!")
         return
@@ -133,6 +139,7 @@ def search_tasks(tasks):
 
 def filter_tasks(tasks):
     """Filter tasks by completion status."""
+    clear_console()
     if not tasks:
         print("\n⚠️  No tasks to filter!")
         return
@@ -182,15 +189,35 @@ def backup_tasks(tasks):
     except IOError as e:
         print(f"❌ Backup failed: {e}")
 
+def show_statistics(tasks):
+    """Display task statistics."""
+    clear_console()
+    total = len(tasks)
+    completed = sum(1 for t in tasks if t['completed'])
+    pending = total - completed
+    
+    print("\n" + "-" * 50)
+    print("             📊 STATISTICS")
+    print("-" * 50)
+    print(f"Total Tasks:     {total}")
+    print(f"Completed:       {completed} ✅")
+    print(f"Pending:         {pending} ⬜")
+    if total > 0:
+        percentage = (completed / total) * 100
+        print(f"Progress:        {percentage:.1f}%")
+    print("-" * 50)
+
 def quick_add_task(tasks):
     """Quick add task without going through full menu."""
     task = input("\n⚡ Quick Add - Enter task: ").strip()
     if task:
         tasks.append({'title': task, 'completed': False})
         print(f"✅ Task added: '{task}'")
+        input("\n🔄 Press Enter to continue...")
         return True
     else:
         print("⚠️  Task cannot be empty!")
+        input("\n🔄 Press Enter to continue...")
         return False
 
 
@@ -204,6 +231,7 @@ def main():
     while True:
         display_menu()
         choice = input("\n👉 Choose an option (0-9) or use shortcuts (q/v/x): ").strip().lower()
+        clear_console()
 
         # Handle keyboard shortcuts
         if choice == 'q':
