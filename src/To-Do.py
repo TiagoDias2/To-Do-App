@@ -1,5 +1,6 @@
 import json
 import os
+import time
 
 # Save tasks in user's home directory for privacy
 TASKS_DIR = os.path.expanduser("~/.todo_app")
@@ -27,18 +28,43 @@ def save_tasks(tasks):
         print("⚠️  Warning: Could not save tasks to file.")
 
 def display_menu():
-    """Display the main menu with better formatting."""
-    print("\n" + "=" * 50)
-    print("         📝 TO-DO APP MENU")
-    print("=" * 50)
-    print("1. ➕  Add Task")
-    print("2. 📋  View All Tasks")
-    print("3. ✅  Mark Task Complete")
-    print("4. ✏️   Edit Task")
-    print("5. 🗑️   Remove Task")
-    print("6. 📊  Show Statistics")
-    print("7. 🚪  Exit")
-    print("=" * 50)
+    """Display the main menu with modern, colorful formatting."""
+    print("\n" + "╔" + "═" * 60 + "╗")
+    print("║" + " " * 60 + "║")
+    print("║" + "           🎯  ADVANCED TO-DO APP MENU" + " " * 16 + "║")
+    print("║" + " " * 60 + "║")
+    print("╠" + "═" * 60 + "╣")
+
+    # Task Management Section
+    print("║  📝 TASK MANAGEMENT" + " " * 39 + "║")
+    print("║" + " " * 60 + "║")
+    print("║    1. ➕  Add New Task" + " " * 35 + "║")
+    print("║    2. 📋  View All Tasks" + " " * 34 + "║")
+    print("║    3. ✅  Mark Task Complete" + " " * 30 + "║")
+    print("║    4. ✏️   Edit Existing Task" + " " * 29 + "║")
+    print("║    5. 🗑️   Delete Task" + " " * 37 + "║")
+    print("║" + " " * 60 + "║")
+    print("╠" + "═" * 60 + "╣")
+
+    # Analytics & Tools Section
+    print("║  📊 ANALYTICS & TOOLS" + " " * 37 + "║")
+    print("║" + " " * 60 + "║")
+    print("║    6. 📈  View Statistics" + " " * 33 + "║")
+    print("║    7. 🔍  Search Tasks" + " " * 36 + "║")
+    print("║    8. 🏷️   Filter by Status" + " " * 31 + "║")
+    print("║" + " " * 60 + "║")
+    print("╠" + "═" * 60 + "╣")
+
+    # System Section
+    print("║  ⚙️  SYSTEM" + " " * 47 + "║")
+    print("║" + " " * 60 + "║")
+    print("║    9. 💾  Save & Backup" + " " * 34 + "║")
+    print("║    0. 🚪  Exit Application" + " " * 30 + "║")
+    print("║" + " " * 60 + "║")
+    print("╚" + "═" * 60 + "╝")
+
+    print("\n💡 Tip: You can also use keyboard shortcuts!")
+    print("   Press 'q' for quick add, 'v' for view, 'x' for exit")
 
 
 def display_tasks(tasks):
@@ -78,35 +104,117 @@ def display_tasks(tasks):
     print("-" * 50)
 
 
-def show_statistics(tasks):
-    """Display task statistics."""
-    total = len(tasks)
-    completed = sum(1 for t in tasks if t['completed'])
-    pending = total - completed
-    
-    print("\n" + "-" * 50)
-    print("             📊 STATISTICS")
-    print("-" * 50)
-    print(f"Total Tasks:     {total}")
-    print(f"Completed:       {completed} ✅")
-    print(f"Pending:         {pending} ⬜")
-    if total > 0:
-        percentage = (completed / total) * 100
-        print(f"Progress:        {percentage:.1f}%")
-    print("-" * 50)
+def search_tasks(tasks):
+    """Search tasks by keyword."""
+    if not tasks:
+        print("\n⚠️  No tasks to search!")
+        return
+
+    query = input("\n🔍 Enter search term: ").strip().lower()
+    if not query:
+        print("⚠️  Search term cannot be empty!")
+        return
+
+    results = []
+    for i, task_data in enumerate(tasks, 1):
+        task_title = task_data['title'].lower()
+        if query in task_title:
+            results.append((i, task_data))
+
+    if results:
+        print(f"\n🔍 Found {len(results)} task(s) matching '{query}':")
+        print("-" * 50)
+        for i, task_data in results:
+            status = "✅" if task_data['completed'] else "⬜"
+            print(f"   {i}. {status} {task_data['title']}")
+        print("-" * 50)
+    else:
+        print(f"\n❌ No tasks found matching '{query}'")
+
+def filter_tasks(tasks):
+    """Filter tasks by completion status."""
+    if not tasks:
+        print("\n⚠️  No tasks to filter!")
+        return
+
+    print("\n🏷️  Filter Options:")
+    print("1. Show only pending tasks")
+    print("2. Show only completed tasks")
+    print("3. Show all tasks")
+
+    choice = input("\n👉 Choose filter (1-3): ").strip()
+
+    if choice == "1":
+        filtered = [(i, t) for i, t in enumerate(tasks, 1) if not t['completed']]
+        title = "🔴 PENDING TASKS"
+    elif choice == "2":
+        filtered = [(i, t) for i, t in enumerate(tasks, 1) if t['completed']]
+        title = "🟢 COMPLETED TASKS"
+    elif choice == "3":
+        display_tasks(tasks)
+        return
+    else:
+        print("⚠️  Invalid choice!")
+        return
+
+    if filtered:
+        print(f"\n{title}:")
+        print("-" * 50)
+        for i, task_data in filtered:
+            status = "✅" if task_data['completed'] else "⬜"
+            print(f"   {i}. {status} {task_data['title']}")
+        print("-" * 50)
+    else:
+        print(f"\n❌ No {title.lower()} found!")
+
+def backup_tasks(tasks):
+    """Create a backup of current tasks."""
+    try:
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        backup_file = os.path.join(TASKS_DIR, f"tasks_backup_{timestamp}.json")
+
+        with open(backup_file, 'w') as f:
+            json.dump(tasks, f, indent=2)
+
+        print(f"✅ Backup created: {backup_file}")
+        print(f"📊 Total tasks backed up: {len(tasks)}")
+
+    except IOError as e:
+        print(f"❌ Backup failed: {e}")
+
+def quick_add_task(tasks):
+    """Quick add task without going through full menu."""
+    task = input("\n⚡ Quick Add - Enter task: ").strip()
+    if task:
+        tasks.append({'title': task, 'completed': False})
+        print(f"✅ Task added: '{task}'")
+        return True
+    else:
+        print("⚠️  Task cannot be empty!")
+        return False
 
 
 def main():
     tasks = load_tasks()
-    
+
     print("\n" + "🎉 " * 10)
-    print("   Welcome to TO-DO APP! Let's get organized  ")
+    print("   Welcome to ADVANCED TO-DO APP! Let's get organized  ")
     print("🎉 " * 10)
-    
+
     while True:
         display_menu()
-        choice = input("\n👉 Choose an option (1-7): ").strip()
-        
+        choice = input("\n👉 Choose an option (0-9) or use shortcuts (q/v/x): ").strip().lower()
+
+        # Handle keyboard shortcuts
+        if choice == 'q':
+            quick_add_task(tasks)
+            continue
+        elif choice == 'v':
+            display_tasks(tasks)
+            continue
+        elif choice == 'x':
+            break
+
         if choice == "1":
             # Add Task
             task = input("\n✏️  Enter a new task: ").strip()
@@ -115,11 +223,11 @@ def main():
                 print(f"✅ Task added: '{task}'")
             else:
                 print("⚠️  Task cannot be empty!")
-                
+
         elif choice == "2":
             # View Tasks
             display_tasks(tasks)
-                
+
         elif choice == "3":
             # Mark Task Complete
             if tasks:
@@ -135,7 +243,7 @@ def main():
                     print("⚠️  Please enter a valid number")
             else:
                 print("\n⚠️  No tasks yet!")
-                
+
         elif choice == "4":
             # Edit Task
             if tasks:
@@ -156,7 +264,7 @@ def main():
                     print("⚠️  Please enter a valid number")
             else:
                 print("\n⚠️  No tasks yet!")
-                
+
         elif choice == "5":
             # Remove Task
             if tasks:
@@ -172,12 +280,25 @@ def main():
                     print("⚠️  Please enter a valid number")
             else:
                 print("\n⚠️  No tasks to remove!")
-                
+
         elif choice == "6":
             # Show Statistics
             show_statistics(tasks)
-                
+
         elif choice == "7":
+            # Search Tasks
+            search_tasks(tasks)
+
+        elif choice == "8":
+            # Filter Tasks
+            filter_tasks(tasks)
+
+        elif choice == "9":
+            # Save & Backup
+            save_tasks(tasks)
+            backup_tasks(tasks)
+
+        elif choice == "0":
             # Exit
             save_tasks(tasks)
             if tasks:
@@ -186,9 +307,9 @@ def main():
             else:
                 print("\n👋 Goodbye! Have a great day!")
             break
-            
+
         else:
-            print("⚠️  Invalid option. Please choose 1-7")
+            print("⚠️  Invalid option. Please choose 0-9 or use shortcuts (q/v/x)")
 
 if __name__ == "__main__":
     main()
